@@ -2,6 +2,10 @@ from config import BOARD_SIZE, categories, image_size
 from tensorflow.keras import models
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.models import load_model
+
+
+
 
 class TicTacToePlayer:
     def get_move(self, board_state):
@@ -114,7 +118,7 @@ class UserWebcamPlayer:
         img = np.expand_dims(img,axis=0)
         img = np.expand_dims(img,axis=-1)
         img = np.repeat(img, 3, axis=-1)
-        model = load_model('merged_model_50_epochs_timestamp_1691605432.keras')
+        model = load_model('basic_model_20_epochs_timestamp_1708479017.keras')
         predictions = model.predict(img)
         result = np.argmax(predictions[0])
         
