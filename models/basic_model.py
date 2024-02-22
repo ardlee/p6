@@ -58,3 +58,5 @@ class BasicModel(Model):
             loss='categorical_crossentropy',  # Categorical cross-entropy loss function
             metrics=['accuracy'],  # Monitoring accuracy during training
         )
+
+
