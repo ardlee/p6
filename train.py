@@ -5,12 +5,14 @@ from models.model import Model
 from config import image_size
 import matplotlib.pyplot as plt
 import time
+from models.transfered_model import TransferedModel
 
 input_shape = (image_size[0], image_size[1], 3)
 categories_count = 3
 
 models = {
     'basic_model': BasicModel,
+    'transfered_model': TransferedModel
 }
 
 def plot_history(history):
@@ -36,6 +38,33 @@ def plot_history(history):
     plt.legend()
     plt.xlabel('Epoch')
     plt.show()
+
+def optimize_hyperparameters(model_class, param_grid, train_dataset, validation_dataset, test_dataset):
+    best_accuracy = 0
+    best_hyperparameters = None
+
+    # Iterate over hyperparameter grid
+    for params in param_grid:
+        model = model_class(input_shape, categories_count, **params)
+        history = model.train_model(train_dataset, validation_dataset, epochs=30)  # Assuming 30 epochs
+
+        # Evaluate model on validation set
+        accuracy = model.evaluate(validation_dataset)
+
+        # Check if current hyperparameters lead to better performance
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            best_hyperparameters = params
+
+    print("Best Hyperparameters:", best_hyperparameters)
+
+    # Train the final model using the best hyperparameters
+    best_model = model_class(input_shape, categories_count, **best_hyperparameters)
+    best_model.train_model(train_dataset, validation_dataset, epochs=30)  # Assuming 30 epochs
+
+    # Evaluate the final model
+    test_accuracy = best_model.evaluate(test_dataset)
+    print("Test Accuracy:", test_accuracy)
 
 if __name__ == "__main__":
     # if you want to load your model later, you can use:
@@ -64,6 +93,28 @@ if __name__ == "__main__":
     np.save('results/{}.npy'.format(model_name), history)
     print('* Model saved as {}'.format(filename))
     plot_history(history)
+
+
+    print('* Data preprocessing')
+    train_dataset, validation_dataset, test_dataset = get_datasets()
+
+    # Define hyperparameter grid for each model
+    param_grids = {
+        'basic_model': [
+            {'num_conv_layers': 2, 'num_fc_layers': 1, 'dropout_rate': 0.2, 'learning_rate': 0.001},
+            {'num_conv_layers': 3, 'num_fc_layers': 2, 'dropout_rate': 0.3, 'learning_rate': 0.01},
+            # Add more hyperparameter combinations as needed
+        ],
+        'transfered_model': [
+            {'num_conv_layers': 2, 'num_fc_layers': 1, 'dropout_rate': 0.2, 'learning_rate': 0.001},
+            {'num_conv_layers': 3, 'num_fc_layers': 2, 'dropout_rate': 0.3, 'learning_rate': 0.01},
+            # Add more hyperparameter combinations as needed
+        ]
+    }
+
+    for name, model_class in models.items():
+        print('* Optimizing hyperparameters for {}'.format(name))
+        optimize_hyperparameters(model_class, param_grids[name], train_dataset, validation_dataset, test_dataset)
 
 # import numpy as np
 # from preprocess import get_datasets
